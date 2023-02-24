@@ -23,6 +23,8 @@ const Unity = () => {
   const [msgFromUnity, setMsgFromUnity] = useState('');
   const [renderColorPicker, setRenderColorPicker] = useState(false);
   const [msgToUnity, setMsgToUnity] = useState('');
+  const [isAREnabled, setIsAREnabled] = useState(false);
+  const [isARStarted, setIsARStarted] = useState(false);
   const [currentColor, setCurentColor] = useState('#36ffff');
   const [isLit, setisLit] = useState(false);
   const [started, setStarted] = useState(false);
@@ -67,6 +69,12 @@ const Unity = () => {
     [started],
   );
 
+  useEffect(() => {
+    if (started) {
+      setIsAREnabled(true);
+    }
+  }, [started]);
+
   const toggleGame = useCallback(() => {
     if (unityRef && unityRef.current) {
       unityRef.current.postMessage(message.gameObject, 'LoadLevel', level);
@@ -75,6 +83,19 @@ const Unity = () => {
       setStarted(!started);
     }
   }, [message.gameObject, level, started]);
+
+  const toggleAR = useCallback(() => {
+    if (unityRef && unityRef.current) {
+      unityRef.current.postMessage(
+        message.gameObject,
+        'LoadLevel',
+        isARStarted ? 'SampleScene' : 'AROcclusion',
+      );
+      setisLit(false);
+      setMsgFromUnity('');
+      setIsARStarted(!isARStarted);
+    }
+  }, [message.gameObject, isARStarted]);
 
   const onColorChange = (value: any) => setCurentColor(value);
 
@@ -142,10 +163,16 @@ const Unity = () => {
                 title={!isLit ? 'Light it up' : 'Dim it down'}
               />
             ) : null}
-            {isLit || started ? (
+            {isLit || (started && !isAREnabled) ? (
               <Button
                 onPress={toggleGame}
                 title={started ? 'Back' : 'Open Game'}
+              />
+            ) : null}
+            {isAREnabled ? (
+              <Button
+                onPress={toggleAR}
+                title={isARStarted ? 'Back' : 'Open AR'}
               />
             ) : null}
           </View>
